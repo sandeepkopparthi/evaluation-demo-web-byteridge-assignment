@@ -11,6 +11,7 @@
     },
     "license": "MIT",
     "dependencies": {
+        "@akveo/ng2-completer": "^9.0.1",
         "@angular/common": "^8.0.0",
         "@angular/compiler": "^8.0.0",
         "@angular/core": "^8.0.0",

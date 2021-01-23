@@ -22,6 +22,18 @@ export class AuditComponent implements OnInit {
                 title: 'Login',
                 sort: true
             },
+            // loginTimeInMilliSeconds: {
+            //     title: 'Login Time In Milliseconds',
+            //     // class: 'd-none'
+            //     hide: true
+            //     // show: false
+            // },
+            // logoutTimeInMilliSeconds: {
+            //     title: 'Logout Time In Milliseconds',
+            //     // class: 'd-none'
+            //     hide: true
+            //     // show: false
+            // },
             logoutTime: {
                 title: 'Logout',
                 sort: true
@@ -43,6 +55,7 @@ export class AuditComponent implements OnInit {
     audits = [];
     currentUser;
     auditsModified = [];
+    isInitialTableLoaded: boolean = false;
 
 
     constructor(
@@ -62,29 +75,32 @@ export class AuditComponent implements OnInit {
         this.auditService.getAll()
             .pipe(first())
             .subscribe((audits) => {
-                this.audits = audits;
-                for (let i = 0; i < this.audits.length; i++) {
+                // this.audits = audits;
+                for (let i = 0; i < audits.length; i++) {
 
-                    let fullDateTimeLogin = this.setDateTimeStructure(this.audits[i].loginTime, false);
+                    let fullDateTimeLogin = this.setDateTimeStructure(audits[i].loginTime, false);
 
-                    // let logoutDate = new Date(parseInt(this.audits[i].logoutTime));
-
-                    let fullDateTimeLogout = this.setDateTimeStructure(this.audits[i].logoutTime, false);
+                    let fullDateTimeLogout = this.setDateTimeStructure(audits[i].logoutTime, false);
 
                     this.auditsModified.push({
-                        user: this.audits[i].user,
-                        id: this.audits[i]._id,
+                        user: audits[i].user,
+                        id: audits[i].id,
                         loginTime: fullDateTimeLogin,
+                        loginTimeInMilliSeconds: audits[i].loginTime,
                         logoutTime: fullDateTimeLogout,
-                        ip: this.audits[i].ip
+                        logoutTimeInMilliSeconds: audits[i].logoutTime,
+                        ip: audits[i].ip
                     })
                 }
                 this.tableSource.load(this.auditsModified);
+                this.isInitialTableLoaded = true;
+                console.log((this.auditsModified[2762].loginTime).slice(11, 13));
             });
     }
 
     setDateTimeStructure(loginLogoutTime: string, is12HourFormat: boolean) {
-        let date: Date = new Date(parseInt(loginLogoutTime));
+        let date: Date;
+        date = new Date(parseInt(loginLogoutTime));
         let DD;
         let MM;
         let YYYY;
@@ -117,7 +133,11 @@ export class AuditComponent implements OnInit {
         }
         else {
             if ((is12HourFormat === true) && (date.getHours() > 12)) {
-                hh = (date.getHours() - 12).toString();
+                if ((date.getHours() - 12) < 10) {
+                    hh = '0' + (date.getHours() - 12).toString();
+                } else {
+                    hh = (date.getHours() - 12).toString();
+                }
             }
             else {
                 hh = date.getHours().toString();
@@ -167,30 +187,16 @@ export class AuditComponent implements OnInit {
     }
 
     onTimeFormatChange(event) {
-        if (event === 12) {
+        if (event === "12") {
             for (let i = 0; i < this.auditsModified.length; i++) {
-                this.auditsModified[i].loginTime = this.setDateTimeStructure(this.auditsModified[i].loginTime, true);
-                this.auditsModified[i].logoutTime = this.setDateTimeStructure(this.auditsModified[i].logoutTime, true);
-                this.auditsModified.push({
-                    user: this.audits[i].user,
-                    id: this.audits[i]._id,
-                    loginTime: this.auditsModified[i].loginTime,
-                    logoutTime: this.auditsModified[i].logoutTime,
-                    ip: this.audits[i].ip
-                });
+                this.auditsModified[i].loginTime = this.setDateTimeStructure(this.auditsModified[i].loginTimeInMilliSeconds, true);
+                this.auditsModified[i].logoutTime = this.setDateTimeStructure(this.auditsModified[i].logoutTimeInMilliSeconds, true);
             }
         }
-        else if (event === 24) {
+        else if (event === "24") {
             for (let i = 0; i < this.auditsModified.length; i++) {
-                this.auditsModified[i].loginTime = this.setDateTimeStructure(this.auditsModified[i].loginTime, false);
-                this.auditsModified[i].logoutTime = this.setDateTimeStructure(this.auditsModified[i].logoutTime, false);
-                this.auditsModified.push({
-                    user: this.audits[i].user,
-                    id: this.audits[i]._id,
-                    loginTime: this.auditsModified[i].loginTime,
-                    logoutTime: this.auditsModified[i].logoutTime,
-                    ip: this.audits[i].ip
-                });
+                this.auditsModified[i].loginTime = this.setDateTimeStructure(this.auditsModified[i].loginTimeInMilliSeconds, false);
+                this.auditsModified[i].logoutTime = this.setDateTimeStructure(this.auditsModified[i].logoutTimeInMilliSeconds, false);
             }
         }
         this.tableSource.load(this.auditsModified);
